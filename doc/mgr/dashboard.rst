@@ -36,22 +36,23 @@ Feature Overview
 The dashboard provides the following features:
 
 * **Multi-User and Role Management**: The dashboard supports multiple user
-  accounts with different permissions (roles). User accounts and roles
-  can be managed via both the command line and the WebUI. The dashboard
-  supports various methods to enhance password security. Password
-  complexity rules may be configured, requiring users to change their password
-  after the first login or after a configurable time period. See
+  accounts with different permissions (roles). User accounts and roles can be
+  managed via both the command line and the WebUI. The dashboard supports
+  various methods to enhance password security. Password complexity rules may
+  be configured, requiring users to change their password after the first
+  login or after a configurable time period. See
   :ref:`dashboard-user-role-management` for details.
-* **Single Sign-On (SSO)**: The dashboard supports authentication
-   via an external identity provider using the SAML 2.0 protocol or thse OAuth2 protocol. See
-   :ref:dashboard-saml2-sso-support and :ref:dashboard-oauth2-sso-support for details.
+* **Single Sign-On (SSO)**: The dashboard supports authentication via an
+  external identity provider using the SAML 2.0 protocol or the OAuth2
+  protocol. See :ref:`dashboard-saml2-sso-support` and
+  :ref:`dashboard-oauth2-sso-support` for details.
 * **SSL/TLS support**: All HTTP communication between the web browser and the
   dashboard is secured via SSL. A self-signed certificate can be created with
   a built-in command, but it's also possible to import custom certificates
   signed and issued by a CA. See :ref:`dashboard-ssl-tls-support` for details.
-* **Auditing**: The dashboard backend can be configured to log all ``PUT``, ``POST``
-  and ``DELETE`` API requests in the Ceph audit log. See :ref:`dashboard-auditing`
-  for instructions on how to enable this feature.
+* **Auditing**: The dashboard backend can be configured to log all ``PUT``,
+  ``POST`` and ``DELETE`` API requests in the Ceph audit log. See
+  :ref:`dashboard-auditing` for instructions on how to enable this feature.
 * **Internationalization (I18N)**: The language used for dashboard text can be
   selected at run-time.
 
