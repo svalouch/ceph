@@ -173,8 +173,8 @@ Excluded functionality
   managing linux servers -- it is deliberately constrained to manage
   the Ceph cluster's services only.
 - Multipathed storage is not handled (multipathing is unnecessary for
-  Ceph clusters).  Each drive is assumed to be visible only on
-  a single host.
+  Ceph clusters).
+- Each drive is assumed to be visible only on a single host.
 
 Host management
 ---------------
