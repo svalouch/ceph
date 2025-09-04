@@ -697,6 +697,7 @@ Commands requiring password-less sudo support:
   - ``touch``
   - ``true``
   - ``which`` (see note)
+  - ``echo`` (see note)
   - ``/usr/bin/cephadm`` or python executable (see note)
 
 .. note:: Typically cephadm will execute ``which`` to determine what python3
@@ -706,6 +707,10 @@ Commands requiring password-less sudo support:
    python command to add to the ``sudo`` configuration.
    In some rare configurations ``/usr/bin/cephadm`` will be used instead.
 
+   ``echo`` is used once during bootstrap, to test if passwordless sudo works
+   by executing ``sudo echo``. It can be removed after successful
+   bootstrapping.
+
 
 Configuring the ``sudoers`` file can be performed using a tool like ``visudo``
 and adding or replacing a user configuration line such as the following:
@@ -713,7 +718,7 @@ and adding or replacing a user configuration line such as the following:
 .. code-block::
 
   # assuming the cephadm user is named "ceph"
-  ceph ALL=(ALL) NOPASSWD:/usr/bin/chmod,/usr/bin/chown,/usr/bin/ls,/usr/bin/mkdir,/usr/bin/mv,/usr/bin/rm,/usr/sbin/sysctl,/usr/bin/touch,/usr/bin/true,/usr/bin/which,/usr/bin/cephadm,/usr/bin/python3
+  ceph ALL=(ALL) NOPASSWD:/usr/bin/chmod,/usr/bin/chown,/usr/bin/ls,/usr/bin/mkdir,/usr/bin/mv,/usr/bin/rm,/usr/sbin/sysctl,/usr/bin/touch,/usr/bin/true,/usr/bin/which,/usr/bin/echo,/usr/bin/cephadm,/usr/bin/python3
 
 
 Purging a cluster
