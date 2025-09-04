@@ -58,14 +58,15 @@ The output from the ``ceph auth get-or-create`` command is the keyring for the
 specified Ceph user ID, which can be written to
 ``/etc/ceph/ceph.client.{ID}.keyring``.
 
-.. note:: Specify the Ceph user ID by providing the ``--id {id} argument when
-   using the ``rbd`` command. This argument is optional. 
+.. note:: Specify the Ceph user ID by providing the ``--id {id}`` argument
+   when using the ``rbd`` command. This argument is optional.
 
 Creating a Block Device Image
 =============================
 
 Before you can add a block device to a node, you must create an image for it in
-the :term:`Ceph Storage Cluster`. To create a block device image, run a command of this form: 
+the :term:`Ceph Storage Cluster`. To create a block device image, run a
+command of this form:
 
 .. prompt:: bash $
 
