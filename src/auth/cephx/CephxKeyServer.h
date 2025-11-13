@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -15,11 +16,19 @@
 #ifndef CEPH_KEYSSERVER_H
 #define CEPH_KEYSSERVER_H
 
+#include <cstdint>
+#include <list>
+#include <map>
+#include <string>
+
 #include "auth/KeyRing.h"
 #include "CephxProtocol.h"
 #include "common/ceph_json.h"
 #include "common/ceph_mutex.h"
+#include "common/Formatter.h"
 #include "include/common_fwd.h"
+#include "include/encoding.h"
+#include "include/types.h" // for version_t
 
 struct KeyServerData {
   version_t version{0};
@@ -80,8 +89,8 @@ struct KeyServerData {
   }
   static std::list<KeyServerData> generate_test_instances() {
     std::list<KeyServerData> ls;
-    ls.push_back(KeyServerData{});
-    ls.push_back(KeyServerData{});
+    ls.emplace_back();
+    ls.emplace_back();
     ls.back().version = 1;
     return ls;
   }
@@ -180,11 +189,11 @@ struct KeyServerData {
     }
     static std::list<Incremental> generate_test_instances() {
       std::list<Incremental> ls;
-      ls.push_back(Incremental{});
+      ls.emplace_back();
       ls.back().op = AUTH_INC_DEL;
-      ls.push_back(Incremental{});
+      ls.emplace_back();
       ls.back().op = AUTH_INC_ADD;
-      ls.push_back(Incremental{});
+      ls.emplace_back();
       ls.back().op = AUTH_INC_SET_ROTATING;
       return ls;
     }

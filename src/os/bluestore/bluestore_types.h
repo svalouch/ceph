@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -22,13 +23,12 @@
 #include <vector>
 #include <array>
 #include "include/mempool.h"
-#include "include/types.h"
 #include "include/interval_set.h"
 #include "include/utime.h"
-#include "common/hobject.h"
 #include "compressor/Compressor.h"
 #include "common/Checksummer.h"
 #include "include/ceph_hash.h"
+#include "include/intarith.h" // for round_up_to()
 
 namespace ceph {
   class Formatter;
@@ -165,7 +165,7 @@ struct bluestore_extent_ref_map_t {
     }
     static std::list<record_t> generate_test_instances() {
       std::list<record_t> o;
-      o.push_back(record_t{});
+      o.emplace_back();
       o.push_back(record_t(123, 456));
       return o;
     }

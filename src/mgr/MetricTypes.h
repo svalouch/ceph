@@ -1,9 +1,10 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #ifndef CEPH_MGR_METRIC_TYPES_H
 #define CEPH_MGR_METRIC_TYPES_H
 
+#include <boost/variant/static_visitor.hpp>
 #include <variant>
 #include "include/denc.h"
 #include "include/ceph_features.h"
@@ -244,7 +245,7 @@ struct MDSConfigPayload {
   }
   static std::list<MDSConfigPayload> generate_test_instances() {
     std::list<MDSConfigPayload> ls;
-    ls.push_back(MDSConfigPayload{});
+    ls.emplace_back();
     return ls;
   }
 };

@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -619,7 +620,7 @@ template <uint8_t _b>
 auto BitVector<_b>::generate_test_instances() -> std::list<BitVector> {
   std::list<BitVector> o;
 
-  o.push_back(BitVector{});
+  o.emplace_back();
 
   BitVector b;
   const uint64_t radix = 1 << b.BIT_COUNT;

@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab ft=cpp
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab ft=cpp
 
 #include <iostream>
 #include <sstream>
@@ -84,7 +84,7 @@ list<rgw_bucket> rgw_bucket::generate_test_instances()
   rgw_bucket b;
   init_bucket(&b, "tenant", "name", "pool", ".index_pool", "marker", "123");
   o.push_back(std::move(b));
-  o.push_back(rgw_bucket{});
+  o.emplace_back();
   return o;
 }
 
@@ -128,7 +128,7 @@ list<rgw_user> rgw_user::generate_test_instances()
   rgw_user u("tenant", "user");
 
   o.push_back(u);
-  o.push_back(rgw_user{});
+  o.emplace_back();
   return o;
 }
 

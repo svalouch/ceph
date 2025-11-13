@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -97,7 +98,7 @@ void HitSet::dump(Formatter *f) const
 list<HitSet> HitSet::generate_test_instances()
 {
   list<HitSet> o;
-  o.push_back(HitSet{});
+  o.emplace_back();
   o.push_back(HitSet(new BloomHitSet(10, .1, 1)));
   o.back().insert(hobject_t());
   o.back().insert(hobject_t("asdf", "", CEPH_NOSNAP, 123, 1, ""));
@@ -200,7 +201,7 @@ list<HitSet::Params> HitSet::Params::generate_test_instances()
   for (auto& i : kind::Params::generate_test_instances()) \
     o.push_back(Params(&i)); \
 }
-  o.push_back(Params{});
+  o.emplace_back();
   o.push_back(Params(new BloomHitSet::Params));
   loop_hitset_params(BloomHitSet);
   o.push_back(Params(new ExplicitHashHitSet::Params));

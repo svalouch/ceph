@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -109,8 +110,8 @@ void osd_info_t::decode(ceph::buffer::list::const_iterator& bl)
 list<osd_info_t> osd_info_t::generate_test_instances()
 {
   list<osd_info_t> o;
-  o.push_back(osd_info_t{});
-  o.push_back(osd_info_t{});
+  o.emplace_back();
+  o.emplace_back();
   o.back().last_clean_begin = 1;
   o.back().last_clean_end = 2;
   o.back().up_from = 30;
@@ -193,8 +194,8 @@ void osd_xinfo_t::decode(ceph::buffer::list::const_iterator& bl)
 list<osd_xinfo_t> osd_xinfo_t::generate_test_instances()
 {
   list<osd_xinfo_t> o;
-  o.push_back(osd_xinfo_t{});
-  o.push_back(osd_xinfo_t{});
+  o.emplace_back();
+  o.emplace_back();
   o.back().down_stamp = utime_t(2, 3);
   o.back().laggy_probability = .123;
   o.back().laggy_interval = 123456;
@@ -373,7 +374,7 @@ bool OSDMap::subtree_type_is_down(
 {
   if (id >= 0) {
     bool is_down_ret = is_down(id);
-    if (!is_out(id)) {
+    if (!is_out(id) && !(osd_state[id] & CEPH_OSD_NEW)) {
       if (is_down_ret) {
         down_in_osds->insert(id);
       } else {
@@ -1394,7 +1395,7 @@ void OSDMap::Incremental::dump(Formatter *f) const
 auto OSDMap::Incremental::generate_test_instances() -> list<Incremental>
 {
   list<Incremental> o;
-  o.push_back(Incremental{});
+  o.emplace_back();
   return o;
 }
 

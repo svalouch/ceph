@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab ft=cpp
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab ft=cpp
 
 #include <exception>
 #include <ranges>
@@ -93,8 +93,8 @@ void rgw_data_change::decode_json(JSONObj *obj) {
 
 std::list<rgw_data_change> rgw_data_change::generate_test_instances() {
   std::list<rgw_data_change> l;
-  l.push_back(rgw_data_change{});
-  l.push_back(rgw_data_change{});
+  l.emplace_back();
+  l.emplace_back();
   l.back().entity_type = ENTITY_TYPE_BUCKET;
   l.back().key = "bucket_name";
   l.back().timestamp = ceph::real_clock::zero();

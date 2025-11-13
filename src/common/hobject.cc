@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #include "hobject.h"
 #include "common/Formatter.h"
@@ -197,8 +197,8 @@ void hobject_t::dump(Formatter *f) const
 list<hobject_t> hobject_t::generate_test_instances()
 {
   list<hobject_t> o;
-  o.push_back(hobject_t{});
-  o.push_back(hobject_t{});
+  o.emplace_back();
+  o.emplace_back();
   o.back().max = true;
   o.push_back(hobject_t(object_t("oname"), string(), 1, 234, -1, ""));
   o.push_back(hobject_t(object_t("oname2"), string("okey"), CEPH_NOSNAP,
@@ -500,8 +500,8 @@ void ghobject_t::dump(Formatter *f) const
 list<ghobject_t> ghobject_t::generate_test_instances()
 {
   list<ghobject_t> o;
-  o.push_back(ghobject_t{});
-  o.push_back(ghobject_t{});
+  o.emplace_back();
+  o.emplace_back();
   o.back().hobj.max = true;
   o.push_back(ghobject_t(hobject_t(object_t("oname"), string(), 1, 234, -1, "")));
 

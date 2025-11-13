@@ -293,6 +293,33 @@ class IssueUpdate:
         new_tags = ", ".join(current_tags)
         self.add_or_update_custom_field(REDMINE_CUSTOM_FIELD_ID_TAGS, new_tags)
 
+    def has_open_subtasks(self):
+        """
+        Checks if the issue has any open subtasks.
+        Returns True if open subtasks exist, False otherwise.
+        """
+        self.logger.debug("Checking for open subtasks.")
+        try:
+            if not hasattr(self.issue, 'children'):
+                self.logger.debug("Issue has no subtasks.")
+                return False
+
+            open_subtasks_info = []
+            for subtask in self.issue.children:
+                subtask.refresh() # fetch status
+                if not subtask.status.is_closed:
+                    open_subtasks_info.append(f"#{subtask.id} (status: {subtask.status.name})")
+
+            if open_subtasks_info:
+                self.logger.info(f"Cannot change status. Issue has open subtasks: {', '.join(open_subtasks_info)}.")
+                return True
+            else:
+                self.logger.debug("All subtasks are closed.")
+                return False
+        except redminelib.exceptions.ResourceAttrError:
+            self.logger.debug("Issue has no subtasks (ResourceAttrError on 'children' attribute).")
+            return False
+
     def get_update_payload(self, suppress_mail=True): # Added suppress_mail parameter
         today = datetime.now(timezone.utc).isoformat(timespec='seconds')
         self.add_or_update_custom_field(REDMINE_CUSTOM_FIELD_ID_UPKEEP_TIMESTAMP, today)
@@ -517,6 +544,54 @@ class RedmineUpkeep:
         def requires_github_api():
             return True
 
+    @transformation(10000)
+    def _transform_clear_stale_merge_commit(self, issue_update):
+        """
+        Transformation: If the "Pull Request ID" was changed after the "Merge
+        Commit SHA" was set, this transformation clears the merge commit and
+        related "Fixed In" field, as they are now considered stale.
+        """
+        issue_update.logger.debug("Running _transform_clear_stale_merge_commit")
+        last_pr_id_change = None
+        last_merge_commit_set = None
+
+        # Journals are ordered oldest to newest, so reverse to find the latest changes first.
+        for journal in reversed(issue_update.issue.journals):
+            if last_pr_id_change and last_merge_commit_set:
+                break
+
+            for detail in journal.details:
+                if detail.get('property') == 'cf':
+                    try:
+                        field_id = int(detail.get('name'))
+                        if field_id == REDMINE_CUSTOM_FIELD_ID_PULL_REQUEST_ID and not last_pr_id_change:
+                            last_pr_id_change = journal.id
+                            issue_update.logger.debug(f"last_pr_id_change = {last_pr_id_change}")
+                        elif field_id == REDMINE_CUSTOM_FIELD_ID_MERGE_COMMIT and not last_merge_commit_set:
+                            # We only care when the commit was set to a non-empty value.
+                            if detail.get('new_value'):
+                                last_merge_commit_set = journal.id
+                                issue_update.logger.debug(f"last_merge_commit_set = {last_merge_commit_set}")
+                    except (ValueError, TypeError):
+                        continue # Ignore if 'name' is not a valid integer field ID
+
+        if not last_pr_id_change or not last_merge_commit_set:
+            issue_update.logger.debug("Did not find journal entries for both PR ID and Merge Commit changes. No action taken.")
+            return False
+
+        issue_update.logger.debug(f"Last PR ID change: {last_pr_id_change}, Last Merge Commit set: {last_merge_commit_set}")
+
+        if last_pr_id_change > last_merge_commit_set:
+            issue_update.logger.info("The 'Pull Request ID' was changed after the 'Merge Commit SHA' was set. Clearing the stale merge commit.")
+            # Clear the merge commit field and also the 'Fixed In' field which depends on it.
+            changed = False
+            changed |= issue_update.add_or_update_custom_field(REDMINE_CUSTOM_FIELD_ID_MERGE_COMMIT, "")
+            changed |= issue_update.add_or_update_custom_field(REDMINE_CUSTOM_FIELD_ID_FIXED_IN, "")
+            changed |= issue_update.add_or_update_custom_field(REDMINE_CUSTOM_FIELD_ID_RELEASED_IN, "")
+            return changed
+
+        return False
+
     class FilterMerged(Filter):
         """
         Filter issues that are closed but no merge commit is set.
@@ -729,6 +804,8 @@ class RedmineUpkeep:
 
         # If PR is merged and it's a backport tracker with 'Pending Backport' status, update to 'Resolved'
         if issue_update.issue.status.id != REDMINE_STATUS_ID_RESOLVED:
+            if issue_update.has_open_subtasks():
+                return False
             issue_update.logger.info(f"Issue status is '{issue_update.issue.status.name}', which is not 'Resolved'.")
             issue_update.logger.info("Updating status to 'Resolved' because its PR is merged.")
             changed = issue_update.change_field('status_id', REDMINE_STATUS_ID_RESOLVED)
@@ -829,6 +906,9 @@ class RedmineUpkeep:
             issue_update.logger.info(f"Not in 'Pending Backport' status ({issue_update.issue.status.name}). Skipping.")
             return False
 
+        if issue_update.has_open_subtasks():
+            return False
+
         issue_update.logger.info("Issue is a main tracker in 'Pending Backport' status. Checking related backports.")
 
         expected_backport_releases_str = issue_update.get_custom_field(REDMINE_CUSTOM_FIELD_ID_BACKPORT)
@@ -842,18 +922,10 @@ class RedmineUpkeep:
             issue_update.logger.warning(f"No backport releases specified in custom field {REDMINE_CUSTOM_FIELD_ID_BACKPORT}.")
 
         copied_to_backports_ids = []
-        try:
-            # Fetch the issue again with 'include=relations' to ensure relations are loaded
-            issue_update.logger.debug("Fetching issue relations to find 'copied_to' links.")
-            issue_with_relations = self.R.issue.get(issue_update.issue.id, include=['relations'])
-
-            for relation in issue_with_relations.relations:
-                if relation.relation_type == 'copied_to':
-                    copied_to_backports_ids.append(relation.issue_to_id)
-            issue_update.logger.info(f"Found 'Copied to' issue IDs: {copied_to_backports_ids}")
-        except redminelib.exceptions.ResourceAttrError as e:
-            issue_update.logger.warning(f"Could not fetch relations for issue: {e}. Skipping backport status check.")
-            return False
+        for relation in issue_update.issue.relations:
+            if relation.relation_type == 'copied_to':
+                copied_to_backports_ids.append(relation.issue_to_id)
+        issue_update.logger.info(f"Found 'Copied to' issue IDs: {copied_to_backports_ids}")
 
         if not copied_to_backports_ids and not expected_backport_releases:
             # If no backports are expected and no 'Copied to' issues exist,
@@ -973,6 +1045,9 @@ class RedmineUpkeep:
             issue_update.logger.info(f"Issue is already closed or 'Pending Backport'. Skipping status update on merge.")
             return False
 
+        if issue_update.has_open_subtasks():
+            return False
+
         issue_update.logger.info(f"Issue has a merge commit ({merge_commit}) and current status is '{issue_update.issue.status.name}'.")
 
         backports_field_value = issue_update.get_custom_field(REDMINE_CUSTOM_FIELD_ID_BACKPORT)
@@ -1025,6 +1100,7 @@ class RedmineUpkeep:
         and sends a single update API call if changes are made.
         """
         self.issues_inspected += 1
+        issue = self.R.issue.get(issue.id, include=['children', 'journals', 'relations'])
         issue_update = IssueUpdate(issue, self.session, self.G)
         issue_update.logger.debug("Beginning transformation processing.")
 
@@ -1064,8 +1140,7 @@ class RedmineUpkeep:
                     issue_update.logger.info("Successfully updated Redmine issue.")
                     self.issues_modified += 1
                     for t_name in applied_transformations:
-                        self.modifications_made.setdefault(t_name, 0)
-                        self.modifications_made[t_name] += 1
+                        self.modifications_made.setdefault(t_name, set()).add(issue.id)
                     return True
                 except requests.exceptions.HTTPError as e:
                     issue_update.logger.error("API PUT failure during upkeep.", exc_info=True)
@@ -1429,7 +1504,12 @@ def main():
     if RU:
         log.info(f"Summary: Issues Inspected: {RU.issues_inspected}, Issues Modified: {RU.issues_modified}, Issues Failed: {RU.upkeep_failures}")
         if RU.issues_modified > 0:
-            log.info(f"Modifications by Transformation: {RU.modifications_made}")
+            log.info("Modifications by Transformation:")
+            for transform, issues in sorted(RU.modifications_made.items()):
+                transform_name = transform.removeprefix('_transform_')
+                log.info(f" - {transform_name}: {len(issues)} issues")
+                for issue in issues:
+                    log.debug(f"  + {REDMINE_ENDPOINT}/issues/{issue}")
         if RedmineUpkeep.GITHUB_RATE_LIMITED:
             log.warning("GitHub API rate limit was encountered during execution.")
 
@@ -1448,8 +1528,11 @@ def main():
                     f.write(f"- **Warning:** GitHub API rate limit was encountered. Some GitHub-related transformations might have been skipped.\n")
                 if RU.issues_modified > 0:
                     f.write(f"#### Modifications by Transformation:\n")
-                    for transform, count in RU.modifications_made.items():
-                        f.write(f"- `{transform}`: {count} issues\n")
+                    for transform, issues in sorted(RU.modifications_made.items()):
+                        transform_name = transform.removeprefix('_transform_')
+                        f.write(f"- **{transform_name}**\n")
+                        for issue in issues:
+                            f.write(f"  - [#{issue}]({REDMINE_ENDPOINT}/issues/{issue})\n")
                 f.write(f"\n")
 
     sys.exit(0)

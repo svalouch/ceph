@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab ft=cpp
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab ft=cpp
 
 /*
  * Ceph - scalable distributed file system
@@ -83,7 +83,7 @@ struct rgw_zone_id {
 
   static std::list<rgw_zone_id> generate_test_instances() {
     std::list<rgw_zone_id> o;
-    o.push_back(rgw_zone_id{});
+    o.emplace_back();
     o.push_back(rgw_zone_id("id"));
     return o;
   }

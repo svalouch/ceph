@@ -35,6 +35,9 @@ import { TableDetailDirective } from '../directives/table-detail.directive';
 import { filter, map } from 'rxjs/operators';
 import { CdSortDirection } from '../../enum/cd-sort-direction';
 import { CdSortPropDir } from '../../models/cd-sort-prop-dir';
+import { EditState } from '../../models/cd-table-editing';
+import { CdFormGroup } from '../../forms/cd-form-group';
+import { FormControl } from '@angular/forms';
 
 const TABLE_LIST_LIMIT = 10;
 type TPaginationInput = { page: number; size: number; filteredData: any[] };
@@ -61,8 +64,8 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
   executingTpl: TemplateRef<any>;
   @ViewChild('classAddingTpl', { static: true })
   classAddingTpl: TemplateRef<any>;
-  @ViewChild('badgeTpl', { static: true })
-  badgeTpl: TemplateRef<any>;
+  @ViewChild('tagTpl', { static: true })
+  tagTpl: TemplateRef<any>;
   @ViewChild('mapTpl', { static: true })
   mapTpl: TemplateRef<any>;
   @ViewChild('truncateTpl', { static: true })
@@ -85,12 +88,23 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
   rowDetailTpl: TemplateRef<any>;
   @ViewChild('tableActionTpl', { static: true })
   tableActionTpl: TemplateRef<any>;
+  @ViewChild('editingTpl', { static: true })
+  editingTpl: TemplateRef<any>;
+  @ViewChild('redirectTpl', { static: true })
+  redirectTpl: TemplateRef<any>;
 
   @ContentChild(TableDetailDirective) rowDetail!: TableDetailDirective;
   @ContentChild(TableActionsComponent) tableActions!: TableActionsComponent;
 
+  private _headerTitle: string | TemplateRef<any>;
+  isHeaderTitleString = false;
+
   @Input()
-  headerTitle: string;
+  set headerTitle(value: string | TemplateRef<any>) {
+    this._headerTitle = value;
+    this.isHeaderTitleString = typeof value === 'string';
+  }
+
   @Input()
   headerDescription: string;
   // This is the array with the items to be shown.
@@ -247,6 +261,12 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
    */
   @Output() columnFiltersChanged = new EventEmitter<CdTableColumnFiltersChange>();
 
+  @Output()
+  editSubmitAction = new EventEmitter<{
+    state: { [field: string]: string };
+    row: any;
+  }>();
+
   /**
    * Use this variable to access the selected row(s).
    */
@@ -282,6 +302,9 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
     return this.selectionType === 'single';
   }
 
+  get headerTitle(): string | TemplateRef<any> {
+    return this._headerTitle;
+  }
   /**
    * Controls if all checkboxes are viewed as selected.
    */
@@ -383,6 +406,11 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
     });
   }
   private previousRows = new Map<string | number, TableItem[]>();
+  private debouncedSearch = this.reloadData.bind(this);
+
+  editingCells = new Set<string>();
+  editStates: EditState = {};
+  formGroup: CdFormGroup = new CdFormGroup({});
 
   constructor(
     // private ngZone: NgZone,
@@ -539,7 +567,13 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
     // debounce reloadData method so that search doesn't run api requests
     // for every keystroke
     if (this.serverSide) {
-      this.reloadData = _.debounce(this.reloadData, 1000);
+      this.reloadData = _.throttle(this.reloadData.bind(this), 1000, {
+        leading: true,
+        trailing: false
+      });
+      this.debouncedSearch = _.debounce(this.reloadData.bind(this), 1000);
+    } else {
+      this.debouncedSearch = this.reloadData.bind(this);
     }
 
     // ngx-datatable triggers calculations each time mouse enters a row,
@@ -822,13 +856,15 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
     this.cellTemplates.perSecond = this.perSecondTpl;
     this.cellTemplates.executing = this.executingTpl;
     this.cellTemplates.classAdding = this.classAddingTpl;
-    this.cellTemplates.badge = this.badgeTpl;
+    this.cellTemplates.tag = this.tagTpl;
     this.cellTemplates.map = this.mapTpl;
     this.cellTemplates.truncate = this.truncateTpl;
     this.cellTemplates.timeAgo = this.timeAgoTpl;
     this.cellTemplates.path = this.pathTpl;
     this.cellTemplates.tooltip = this.tooltipTpl;
     this.cellTemplates.copy = this.copyTpl;
+    this.cellTemplates.editing = this.editingTpl;
+    this.cellTemplates.redirect = this.redirectTpl;
   }
 
   useCustomClass(value: any): string {
@@ -883,7 +919,8 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
       });
       context.pageInfo.offset = this.userConfig.offset;
       context.pageInfo.limit = this.userConfig.limit;
-      context.search = this.userConfig.search;
+      if (this.serverSide) context.search = this.search;
+      else context.search = this.userConfig.search;
       if (this.userConfig.sorts?.length) {
         const sort = this.userConfig.sorts[0];
         context.sort = `${sort.dir === 'desc' ? '-' : '+'}${sort.prop}`;
@@ -905,6 +942,7 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
     this.userConfig.limit = this.model.pageLength;
 
     if (this.serverSide) {
+      this.loadingIndicator = true;
       this.reloadData();
       return;
     }
@@ -1238,7 +1276,7 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
         this.userConfig.limit = this.limit;
         this.userConfig.search = this.search;
         this.updating = false;
-        this.reloadData();
+        this.debouncedSearch();
       }
       this.rows = this.data;
     } else {
@@ -1370,5 +1408,47 @@ export class TableComponent implements AfterViewInit, OnInit, OnChanges, OnDestr
       this.selectAllCheckbox = true;
       this.selectAllCheckboxSomeSelected = false;
     }
+  }
+
+  editCellItem(rowId: string, column: CdTableColumn, value: string) {
+    const key = `${rowId}-${column.prop}`;
+    this.formGroup.addControl(
+      key,
+      new FormControl('', {
+        validators: column.customTemplateConfig?.validators || [],
+        asyncValidators: column.customTemplateConfig?.asyncValidators || []
+      })
+    );
+    this.editingCells.add(key);
+    if (!this.editStates[rowId]) {
+      this.editStates[rowId] = {};
+    }
+    this.formGroup?.get(key).setValue(value);
+    this.editStates[rowId][column.prop] = value;
+  }
+
+  saveCellItem(row: any, colProp: string) {
+    const key = `${row[this.identifier]}-${colProp}`;
+    const control = this.formGroup.get(key);
+
+    if (control?.invalid) {
+      control.setErrors({ cdSubmitButton: true, ...control.errors });
+      return;
+    }
+
+    this.editSubmitAction.emit({
+      state: this.editStates[row[this.identifier]],
+      row: row
+    });
+    this.editingCells.delete(key);
+    delete this.editStates[row[this.identifier]][colProp];
+  }
+
+  isCellEditing(rowId: string, colProp: string): boolean {
+    return this.editingCells.has(`${rowId}-${colProp}`);
+  }
+
+  valueChange(rowId: string, colProp: string, value: string) {
+    this.editStates[rowId][colProp] = value;
   }
 }

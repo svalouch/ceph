@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -1336,7 +1337,14 @@ void MDSMap::set_min_compat_client(ceph_release_t version)
   else if (version >= ceph_release_t::jewel)
     bits.push_back(CEPHFS_FEATURE_JEWEL);
 
-  std::sort(bits.begin(), bits.end());
+  if (bits.size() >= 2) {  // Need at least 2 elements to sort
+    auto first = bits.begin();
+    auto last = bits.end();
+    if (first < last) {  // Validate iterator range
+      std::sort(first, last);
+    }
+  }
+
   required_client_features = feature_bitset_t(bits);
 }
 

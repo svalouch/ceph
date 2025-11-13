@@ -8,7 +8,7 @@
  *
  * Usage should be:
  *
- * crimson-store-bench --store-path <path>
+ * crimson-store-bench --store-path <path> --duration <seconds> --work-load-type <type>
  *
  * where <path> is a directory containing a file block.  block should either
  * be a symlink to an actual block device or a file truncated to an appropriate
@@ -21,11 +21,12 @@
    mkdir store_bench_dir
    touch store_bench_dir/block
    truncate -s 10G store_bench_dir/block
-   ./build/bin/crimson-store-bench --store-path store_bench_dir --smp 4 "$@"
+   ./build/bin/crimson-store-bench --store-path store_bench_dir --smp 4 --duration 10 --work-load-type pg_log --seastore_device_size 10G
  */
 
 #include <random>
 #include <vector>
+#include <unordered_map>
 #include <experimental/random>
 
 #include <boost/program_options/parsers.hpp>
@@ -41,6 +42,7 @@
 #include <seastar/core/thread.hh>
 #include <seastar/util/defer.hh>
 
+#include "common/JSONFormatter.h"
 #include "crimson/common/config_proxy.h"
 #include "crimson/common/coroutine.h"
 #include "crimson/common/log.h"
@@ -119,7 +121,7 @@ public:
 };
 
 
-class PGLogWorkload : public StoreBenchWorkload {
+class PGLogWorkload final : public StoreBenchWorkload {
   unsigned num_logs = 4;
   unsigned log_size = 1024;
   unsigned log_length = 256;
@@ -144,7 +146,7 @@ public:
   ~PGLogWorkload() final {}
 };
 
-class RGWIndexWorkload : public StoreBenchWorkload {
+class RGWIndexWorkload final : public StoreBenchWorkload {
   unsigned num_indices = 16;
   uint64_t key_size = 1024;
   uint64_t value_size = 1024;
@@ -579,7 +581,7 @@ seastar::future<results_t> RGWIndexWorkload::run(
  *
  * Performs a simple random write workload.
  */
-class RandomWriteWorkload : public StoreBenchWorkload {
+class RandomWriteWorkload final : public StoreBenchWorkload {
   uint64_t prefill_size = 128<<10;
   uint64_t io_size = 4<<10;
   uint64_t size_per_shard = 64<<20;
@@ -588,9 +590,6 @@ class RandomWriteWorkload : public StoreBenchWorkload {
   uint64_t io_concurrency_per_shard = 16;
   uint64_t get_obj_per_shard() const {
     return size_per_shard / size_per_obj;
-  }
-  uint64_t get_obj_per_coll() const {
-    return get_obj_per_shard() / colls_per_shard;
   }
 public:
   po::options_description get_options() final {
@@ -664,7 +663,8 @@ seastar::future<results_t> RandomWriteWorkload::run(
       ghobject_t::NO_GEN);
   };
 
-  std::vector<
+  std::unordered_map<
+    uint64_t,
     std::pair<coll_t, crimson::os::CollectionRef>
     > coll_refs;
   for (uint64_t collidx = 0; collidx < colls_per_shard; ++collidx) {
@@ -673,13 +673,15 @@ seastar::future<results_t> RandomWriteWorkload::run(
    );
    auto ref = co_await local_store.create_new_collection(
      cid);
-   coll_refs.emplace_back(std::make_pair(cid, std::move(ref)));
+   coll_refs.emplace(collidx, std::make_pair(cid, std::move(ref)));
   }
   auto get_coll_id = [&](uint64_t obj_id) {
-    return coll_refs[obj_id % get_obj_per_coll()].first;
+    assert(coll_refs.contains(obj_id % colls_per_shard));
+    return coll_refs.at(obj_id % colls_per_shard).first;
   };
   auto get_coll_ref = [&](uint64_t obj_id) {
-    return coll_refs[obj_id % get_obj_per_coll()].second;
+    assert(coll_refs.contains(obj_id % colls_per_shard));
+    return coll_refs.at(obj_id % colls_per_shard).second;
   };
 
   unsigned running = 0;
@@ -751,7 +753,8 @@ seastar::future<results_t> RandomWriteWorkload::run(
   }
 
   INFO("writes_started {}", writes_started);
-  for (auto &[id, ref]: coll_refs) {
+  for (auto &[_, entry]: coll_refs) {
+    auto &[id, ref] = entry;
     INFO("flushing {}", id);
     co_await local_store.flush(ref);
   }
@@ -786,12 +789,11 @@ int main(int argc, char **argv) {
        */
     ("store-path", po::value<std::string>(&store_path)->required(),
      "path to store, <store-path>/block should "
-     "be a symlink to the target device for bluestore or seastore")(
-       "debug", po::value<bool>(&debug)->default_value(false),
-       "enable debugging")
+     "be a symlink to the target device for bluestore or seastore")
+    ("debug", po::bool_switch(&debug), "enable debugging")
     ("work-load-type",
      po::value<std::string>(&work_load_type)->required(),
-     "work load type: pg_log or rgw_index")
+     "work load type: pg_log, rgw_index or random_write")
     ("smp", po::value<unsigned>(&smp),
      "number of reactors");
   

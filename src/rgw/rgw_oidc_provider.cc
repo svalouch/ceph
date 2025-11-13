@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab ft=cpp
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab ft=cpp
 
 #include "rgw_oidc_provider.h"
 
@@ -38,6 +38,6 @@ std::list<RGWOIDCProviderInfo> RGWOIDCProviderInfo::generate_test_instances()
   p.client_ids = {"a", "b"};
   p.thumbprints = {"c", "d"};
   l.push_back(std::move(p));
-  l.push_back(RGWOIDCProviderInfo{});
+  l.emplace_back();
   return l;
 }

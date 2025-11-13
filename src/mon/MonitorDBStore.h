@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
 * Ceph - scalable distributed file system
 *
@@ -24,7 +25,7 @@
 #include "kv/KeyValueDB.h"
 
 #include "include/ceph_assert.h"
-#include "common/Formatter.h"
+#include "common/JSONFormatter.h"
 #include "common/Finisher.h"
 #include "common/errno.h"
 #include "common/debug.h"
@@ -121,7 +122,7 @@ class MonitorDBStore
 
     static std::list<Op> generate_test_instances() {
       std::list<Op> ls;
-      ls.push_back(Op{});
+      ls.emplace_back();
       // we get coverage here from the Transaction instances
       return ls;
     }
@@ -209,8 +210,8 @@ class MonitorDBStore
 
     static std::list<Transaction> generate_test_instances() {
       std::list<Transaction> ls;
-      ls.push_back(Transaction{});
-      ls.push_back(Transaction{});
+      ls.emplace_back();
+      ls.emplace_back();
       ceph::buffer::list bl;
       bl.append("value");
       ls.back().put("prefix", "key", bl);

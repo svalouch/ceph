@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #ifndef CEPH_CLS_TIMEINDEX_OPS_H
 #define CEPH_CLS_TIMEINDEX_OPS_H
@@ -66,8 +66,8 @@ struct cls_timeindex_list_op {
 
   static std::list<cls_timeindex_list_op> generate_test_instances() {
     std::list<cls_timeindex_list_op> o;
-    o.push_back(cls_timeindex_list_op{});
-    o.push_back(cls_timeindex_list_op{});
+    o.emplace_back();
+    o.emplace_back();
     o.back().from_time = utime_t(1, 2);
     o.back().marker = "marker";
     o.back().to_time = utime_t(3, 4);
@@ -108,8 +108,8 @@ struct cls_timeindex_list_ret {
 
   static std::list<cls_timeindex_list_ret> generate_test_instances() {
     std::list<cls_timeindex_list_ret> o;
-    o.push_back(cls_timeindex_list_ret{});
-    o.push_back(cls_timeindex_list_ret{});
+    o.emplace_back();
+    o.emplace_back();
     o.back().entries.push_back(cls_timeindex_entry());
     o.back().entries.back().key_ts = utime_t(1, 2);
     o.back().entries.back().key_ext = "key_ext";

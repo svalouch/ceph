@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab ft=cpp
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab ft=cpp
 
 /*
  * Ceph - scalable distributed file system
@@ -2709,8 +2709,10 @@ int POSIXBucket::check_bucket_shards(const DoutPrefixProvider* dpp,
   return 0;
 }
 
-int POSIXBucket::chown(const DoutPrefixProvider* dpp, const rgw_owner& new_owner, optional_yield y)
-{
+int POSIXBucket::chown(const DoutPrefixProvider* dpp,
+                       const rgw_owner& new_owner,
+                       const std::string& new_owner_name,
+                       optional_yield y) {
   /* TODO map user to UID/GID, and change it */
   return 0;
 }
@@ -3127,8 +3129,7 @@ int POSIXObject::set_obj_attrs(const DoutPrefixProvider* dpp, Attrs* setattrs,
   return 0;
 }
 
-int POSIXObject::get_obj_attrs(optional_yield y, const DoutPrefixProvider* dpp,
-                                rgw_obj* target_obj)
+int POSIXObject::get_obj_attrs(optional_yield y, const DoutPrefixProvider* dpp)
 {
   //int fd;
 
@@ -3242,6 +3243,7 @@ int POSIXObject::restore_obj_from_cloud(Bucket* bucket,
 	  CephContext* cct,
           std::optional<uint64_t> days,
           bool& in_progress,
+	  uint64_t& size,
           const DoutPrefixProvider* dpp, 
           optional_yield y)
 {
@@ -3916,7 +3918,9 @@ int POSIXMultipartUpload::complete(const DoutPrefixProvider *dpp,
 				    std::string& tag, ACLOwner& owner,
 				    uint64_t olh_epoch,
 				    rgw::sal::Object* target_obj,
-				    prefix_map_t& processed_prefixes)
+				    prefix_map_t& processed_prefixes,
+            const char *if_match,
+            const char *if_nomatch)
 {
   char final_etag[CEPH_CRYPTO_MD5_DIGESTSIZE];
   char final_etag_str[CEPH_CRYPTO_MD5_DIGESTSIZE * 2 + 16];

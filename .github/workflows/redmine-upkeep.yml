@@ -31,9 +31,6 @@ on:
   push:
     branches:
       - 'feature/redmine-upkeep'
-concurrency:
-  group: redmine-upkeep-workflow-concurrency-group
-  cancel-in-progress: false
 jobs:
   redmine-upkeep:
     runs-on: ubuntu-latest
@@ -92,7 +89,7 @@ jobs:
              python3 ceph/src/script/redmine-upkeep.py
              --github-action
              --git-dir=./ceph/
-             --limit=5000
+             --limit=50
         env:
           REDMINE_API_KEY: ${{ secrets.REDMINE_API_KEY_BACKPORT_BOT }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

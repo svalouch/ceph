@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab ft=cpp
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab ft=cpp
 
 /*
  * Ceph - scalable distributed file system
@@ -68,8 +68,8 @@ void RGWCORSRule::erase_origin_if_present(string& origin, bool *rule_empty) {
 list<RGWCORSRule> RGWCORSRule::generate_test_instances()
 {
   list<RGWCORSRule> o;
-  o.push_back(RGWCORSRule{});
-  o.push_back(RGWCORSRule{});
+  o.emplace_back();
+  o.emplace_back();
   o.back().id = "test";
   o.back().max_age = 100;
   o.back().allowed_methods = RGW_CORS_GET | RGW_CORS_PUT;

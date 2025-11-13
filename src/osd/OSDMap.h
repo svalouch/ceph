@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -348,8 +349,8 @@ struct PGTempMap {
   }
   static std::list<PGTempMap> generate_test_instances() {
     std::list<PGTempMap> o;
-    o.push_back(PGTempMap{});
-    o.push_back(PGTempMap{});
+    o.emplace_back();
+    o.emplace_back();
     o.back().set(pg_t(1, 2), { 3, 4 });
     o.back().set(pg_t(2, 3), { 4, 5 });
     return o;

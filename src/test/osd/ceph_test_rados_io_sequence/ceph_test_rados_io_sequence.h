@@ -388,6 +388,7 @@ class SelectErasurePool : public ProgramOptionReader<std::string> {
                     bool allow_pool_balancer,
                     bool allow_pool_deep_scrubbing,
                     bool allow_pool_scrubbing,
+                    bool check_consistency,
                     bool test_recovery,
                     bool allow_pool_ec_optimizations);
   const std::string select() override;
@@ -402,6 +403,9 @@ class SelectErasurePool : public ProgramOptionReader<std::string> {
   inline bool get_allow_pool_ec_optimizations() {
     return allow_pool_ec_optimizations;
   }
+
+  inline bool is_replicated_pool() const { return pool_type
+                                              == pg_pool_t::TYPE_REPLICATED; }
   inline std::optional<Profile> getProfile() { return profile; }
 
  private:
@@ -412,8 +416,12 @@ class SelectErasurePool : public ProgramOptionReader<std::string> {
   bool allow_pool_balancer;
   bool allow_pool_deep_scrubbing;
   bool allow_pool_scrubbing;
+  bool check_consistency;
   bool test_recovery;
   bool allow_pool_ec_optimizations;
+
+  using PoolType = int;
+  PoolType pool_type;
 
   bool first_use;
 
@@ -422,6 +430,7 @@ class SelectErasurePool : public ProgramOptionReader<std::string> {
   std::optional<Profile> profile;
 
   void configureServices(const std::string& pool_name,
+                         PoolType pool_type,
                          bool allow_pool_autoscaling,
                          bool allow_pool_balancer,
                          bool allow_pool_deep_scrubbing,
@@ -435,7 +444,8 @@ class SelectErasurePool : public ProgramOptionReader<std::string> {
 
 class TestObject {
  public:
-  TestObject(const std::string oid,
+  TestObject(const std::string primary_oid,
+             const std::string secondary_oid,
              librados::Rados& rados,
              boost::asio::io_context& asio,
              ceph::io_sequence::tester::SelectBlockSize& sbs,
@@ -522,8 +532,9 @@ class TestRunner {
   bool show_sequence;
   bool show_help;
 
-  int num_objects;
-  std::string object_name;
+  int num_object_pairs;
+  std::string primary_object_name;
+  std::string secondary_object_name;
 
   std::string line;
   ceph::split split = ceph::split("");

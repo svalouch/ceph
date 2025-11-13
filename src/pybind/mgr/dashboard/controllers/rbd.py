@@ -4,7 +4,7 @@
 
 import logging
 import math
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import partial
 from typing import Any, Dict
 
@@ -38,6 +38,11 @@ RBD_TRASH_SCHEMA = [{
     "status": (int, ''),
     "value": ([str], ''),
     "pool_name": (str, 'pool name')
+}]
+
+RBD_GROUP_LIST_SCHEMA = [{
+    "group": (str, 'group name'),
+    "num_images": (int, '')
 }]
 
 
@@ -347,9 +352,8 @@ class RbdTrash(RESTController):
                 for trash in images:
                     trash['pool_name'] = pool_name
                     trash['namespace'] = namespace
-                    trash['deletion_time'] = "{}Z".format(trash['deletion_time'].isoformat())
-                    trash['deferment_end_time'] = "{}Z".format(
-                        trash['deferment_end_time'].isoformat())
+                    trash['deletion_time'] = trash['deletion_time'].isoformat()
+                    trash['deferment_end_time'] = trash['deferment_end_time'].isoformat()
                     result.append(trash)
             return result
 
@@ -385,7 +389,7 @@ class RbdTrash(RESTController):
     @allow_empty_body
     def purge(self, pool_name=None):
         """Remove all expired images from trash."""
-        now = "{}Z".format(datetime.utcnow().isoformat())
+        now = datetime.now(timezone.utc).isoformat()
         pools = self._trash_list(pool_name)
 
         for pool in pools:
@@ -458,3 +462,36 @@ class RbdNamespace(RESTController):
                     'num_images': len(images) if images else 0
                 })
             return result
+
+
+@APIRouter('/block/pool/{pool_name}/group', Scope.RBD_IMAGE)
+@APIDoc("RBD Group Management API", "RbdGroup")
+class RbdGroup(RESTController):
+    def __init__(self):
+        super().__init__()
+        self.rbd_inst = rbd.RBD()
+
+    @EndpointDoc("Display RBD Groups by pool name",
+                 parameters={
+                     'pool_name': (str, 'Name of the pool'),
+                 },
+                 responses={200: RBD_GROUP_LIST_SCHEMA})
+    def list(self, pool_name):
+        with mgr.rados.open_ioctx(pool_name) as ioctx:
+            result = []
+            groups = self.rbd_inst.group_list(ioctx)
+            for group in groups:
+                result.append({
+                    'group': group,
+                    'num_images': len(list(rbd.Group(ioctx, group).list_images()))
+                })
+            return result
+
+    @EndpointDoc("Create an RBD Group",
+                 parameters={
+                     'pool_name': (str, 'Name of the pool'),
+                     'name': (str, 'Name of the group'),
+                 })
+    def create(self, pool_name, name):
+        with mgr.rados.open_ioctx(pool_name) as ioctx:
+            return self.rbd_inst.group_create(ioctx, name)

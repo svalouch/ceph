@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #ifndef __CEPH_CLS_RBD_H
 #define __CEPH_CLS_RBD_H
@@ -95,7 +95,7 @@ struct cls_rbd_parent {
 
   static std::list<cls_rbd_parent> generate_test_instances() {
     std::list<cls_rbd_parent> o;
-    o.push_back(cls_rbd_parent{});
+    o.emplace_back();
     o.push_back(cls_rbd_parent{{1, "", "image id", 234}, {}});
     o.push_back(cls_rbd_parent{{1, "", "image id", 234}, {123}});
     o.push_back(cls_rbd_parent{{1, "ns", "image id", 234}, {123}});
@@ -234,11 +234,11 @@ struct cls_rbd_snap {
     // otherwise check-generated.sh would fail due to the disprepancies between
     // the original dump and re-encoded dump
     o.push_back(cls_rbd_snap{1, "snap", 123456,
-                             RBD_PROTECTION_STATUS_PROTECTED, cls_rbd_parent{}, 31, {},
+                             RBD_PROTECTION_STATUS_PROTECTED, {}, 31, {},
                              cls::rbd::UserSnapshotNamespace{}, 543, {}});
     o.push_back(cls_rbd_snap{1, "snap", 123456,
-                             RBD_PROTECTION_STATUS_PROTECTED, cls_rbd_parent{}, 31, utime_t{},
-                             cls::rbd::UserSnapshotNamespace{}, 543, std::optional<uint64_t>{0}});
+                             RBD_PROTECTION_STATUS_PROTECTED, {}, 31, {},
+                             cls::rbd::UserSnapshotNamespace{}, 543, {0}});
     o.push_back(cls_rbd_snap{1, "snap", 123456,
                              RBD_PROTECTION_STATUS_PROTECTED, {}, 31, {},
                              cls::rbd::UserSnapshotNamespace{}, 543, {123}});

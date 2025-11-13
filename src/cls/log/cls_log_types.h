@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 #ifndef CEPH_CLS_LOG_TYPES_H
 #define CEPH_CLS_LOG_TYPES_H
 
@@ -71,8 +72,8 @@ struct entry {
 
   static std::list<cls::log::entry> generate_test_instances() {
     std::list<cls::log::entry> l;
-    l.push_back(cls::log::entry{});
-    l.push_back(cls::log::entry{});
+    l.emplace_back();
+    l.emplace_back();
     l.back().id = "test_id";
     l.back().section = "test_section";
     l.back().name = "test_name";
@@ -109,8 +110,8 @@ struct header {
   }
   static std::list<header> generate_test_instances() {
     std::list<header> o;
-    o.push_back(header{});
-    o.push_back(header{});
+    o.emplace_back();
+    o.emplace_back();
     o.back().max_marker = "test_marker";
     o.back().max_time = ceph::real_clock::zero();
     return o;

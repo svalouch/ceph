@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
+
 #ifndef CEPH_MDSTYPES_H
 #define CEPH_MDSTYPES_H
 
@@ -10,6 +11,7 @@
 #include <map>
 #include <string>
 #include <string_view>
+#include <shared_mutex>
 
 #include "common/DecayCounter.h"
 #include "common/entity_name.h"
@@ -17,6 +19,8 @@
 #include "include/frag.h"
 #include "include/interval_set.h"
 #include "include/fs_types.h"
+#include "include/types.h" // for ceph_tid_t, version_t
+#include "include/utime.h"
 
 #include "include/ceph_assert.h"
 #include "include/cephfs/dump.h"
@@ -206,8 +210,8 @@ template<template<typename> class Allocator>
 auto old_inode_t<Allocator>::generate_test_instances() -> std::list<old_inode_t<Allocator>>
 {
   std::list<old_inode_t<Allocator>> ls;
-  ls.push_back(old_inode_t<Allocator>{});
-  ls.push_back(old_inode_t<Allocator>{});
+  ls.emplace_back();
+  ls.emplace_back();
   ls.back().first = 2;
   std::list<inode_t<Allocator>> ils = inode_t<Allocator>::generate_test_instances();
   ls.back().inode = ils.back();
@@ -986,4 +990,37 @@ struct BlockDiff {
 };
 WRITE_CLASS_ENCODER(BlockDiff);
 
+/**
+ *
+ * @brief Represents aggregated metric per subvolume
+ * This aggregation is a result of aggregating multiple
+ * AggregatedIOMetric instances from various clients
+ * (AggregatedIOMetric is created on the client by aggregating multiple SimpleIOMetric instances)
+ */
+struct SubvolumeMetric {
+    std::string subvolume_path;
+    uint64_t read_ops = 0;
+    uint64_t write_ops = 0;
+    uint64_t read_size = 0;
+    uint64_t write_size = 0;
+    uint64_t avg_read_latency = 0;
+    uint64_t avg_write_latency = 0;
+    uint64_t time_stamp = 0;
+
+    DENC(SubvolumeMetric, v, p) {
+      DENC_START(1, 1, p);
+      denc(v.subvolume_path, p);
+      denc(v.read_ops, p);
+      denc(v.write_ops, p);
+      denc(v.read_size, p);
+      denc(v.write_size, p);
+      denc(v.avg_read_latency, p);
+      denc(v.avg_write_latency, p);
+      denc(v.time_stamp, p);
+      DENC_FINISH(p);
+    }
+
+    void dump(Formatter *f) const;
+    friend std::ostream& operator<<(std::ostream& os, const SubvolumeMetric &m);
+};
 #endif

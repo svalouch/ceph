@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #pragma once
 
@@ -42,8 +42,8 @@ struct cls_rgw_gc_urgent_data
   }
   static std::list<cls_rgw_gc_urgent_data> generate_test_instances() {
     std::list<cls_rgw_gc_urgent_data> o;
-    o.push_back(cls_rgw_gc_urgent_data{});
-    o.push_back(cls_rgw_gc_urgent_data{});
+    o.emplace_back();
+    o.emplace_back();
     o.back().num_urgent_data_entries = 1024;
     o.back().num_head_urgent_entries = 512;
     o.back().num_xattr_urgent_entries = 512;

@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -673,6 +674,7 @@ struct ObjectOperation {
   struct CB_ObjectOperation_decodevals {
     uint64_t max_entries;
     Vals* pattrs;
+    Vals ignore;
     bool* ptruncated;
     int* prval;
     boost::system::error_code* pec;
@@ -691,7 +693,6 @@ struct ObjectOperation {
 	  if (pattrs)
 	    decode(*pattrs, p);
 	  if (ptruncated) {
-	    Vals ignore;
 	    if (!pattrs) {
 	      decode(ignore, p);
 	      pattrs = &ignore;
@@ -718,6 +719,7 @@ struct ObjectOperation {
   struct CB_ObjectOperation_decodekeys {
     uint64_t max_entries;
     Keys* pattrs;
+    Keys ignore;
     bool *ptruncated;
     int *prval;
     boost::system::error_code* pec;
@@ -736,7 +738,6 @@ struct ObjectOperation {
 	  if (pattrs)
 	    decode(*pattrs, p);
 	  if (ptruncated) {
-	    Keys ignore;
 	    if (!pattrs) {
 	      decode(ignore, p);
 	      pattrs = &ignore;
@@ -2974,8 +2975,8 @@ public:
   epoch_t op_cancel_writes(int r, int64_t pool=-1);
 
   // commands
-  void osd_command_(int osd, std::vector<std::string> cmd,
-		   ceph::buffer::list inbl, ceph_tid_t *ptid,
+  void osd_command_(int osd, std::vector<std::string>&& cmd,
+		   ceph::buffer::list&& inbl, ceph_tid_t *ptid,
 		   decltype(CommandOp::onfinish)&& onfinish) {
     ceph_assert(osd >= 0);
     auto c = new CommandOp(
@@ -2986,22 +2987,22 @@ public:
     submit_command(c, ptid);
   }
   template<typename CompletionToken>
-  auto osd_command(int osd, std::vector<std::string> cmd,
-		   ceph::buffer::list inbl, ceph_tid_t *ptid,
+  auto osd_command(int osd, std::vector<std::string>&& cmd,
+		   ceph::buffer::list&& inbl, ceph_tid_t *ptid,
 		   CompletionToken&& token) {
     auto consigned = boost::asio::consign(
       std::forward<CompletionToken>(token), boost::asio::make_work_guard(
 	service.get_executor()));
     return boost::asio::async_initiate<decltype(consigned), CommandOp::OpSig>(
       [osd, cmd = std::move(cmd), inbl = std::move(inbl), ptid, this]
-      (auto handler) {
+      (auto handler) mutable {
 	osd_command_(osd, std::move(cmd), std::move(inbl), ptid,
 		     std::move(handler));
       }, consigned);
   }
 
-  void pg_command_(pg_t pgid, std::vector<std::string> cmd,
-		   ceph::buffer::list inbl, ceph_tid_t *ptid,
+  void pg_command_(pg_t pgid, std::vector<std::string>&& cmd,
+		   ceph::buffer::list&& inbl, ceph_tid_t *ptid,
 		   decltype(CommandOp::onfinish)&& onfinish) {
     auto *c = new CommandOp(
       pgid,
@@ -3012,14 +3013,14 @@ public:
   }
 
   template<typename CompletionToken>
-  auto pg_command(pg_t pgid, std::vector<std::string> cmd,
-		  ceph::buffer::list inbl, ceph_tid_t *ptid,
+  auto pg_command(pg_t pgid, std::vector<std::string>&& cmd,
+		  ceph::buffer::list&& inbl, ceph_tid_t *ptid,
 		  CompletionToken&& token) {
     auto consigned = boost::asio::consign(
       std::forward<CompletionToken>(token), boost::asio::make_work_guard(service.get_executor()));
     return async_initiate<decltype(consigned), CommandOp::OpSig> (
       [pgid, cmd = std::move(cmd), inbl = std::move(inbl), ptid, this]
-      (auto handler) {
+      (auto handler) mutable {
 	pg_command_(pgid, std::move(cmd), std::move(inbl), ptid,
 		    std::move(handler));
       }, consigned);

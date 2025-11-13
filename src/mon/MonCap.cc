@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -532,20 +533,20 @@ void MonCap::dump(Formatter *f) const
 list<MonCap> MonCap::generate_test_instances()
 {
   list<MonCap> ls;
-  ls.push_back(MonCap{});
-  ls.push_back(MonCap{});
+  ls.emplace_back();
+  ls.emplace_back();
   ls.back().parse("allow *");
-  ls.push_back(MonCap{});
+  ls.emplace_back();
   ls.back().parse("allow rwx");
-  ls.push_back(MonCap{});
+  ls.emplace_back();
   ls.back().parse("allow service foo x");
-  ls.push_back(MonCap{});
+  ls.emplace_back();
   ls.back().parse("allow command bar x");
-  ls.push_back(MonCap{});
+  ls.emplace_back();
   ls.back().parse("allow service foo r, allow command bar x");
-  ls.push_back(MonCap{});
+  ls.emplace_back();
   ls.back().parse("allow command bar with k1=v1 x");
-  ls.push_back(MonCap{});
+  ls.emplace_back();
   ls.back().parse("allow command bar with k1=v1 k2=v2 x");
   return ls;
 }

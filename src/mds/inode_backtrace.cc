@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #include "inode_backtrace.h"
 
@@ -43,8 +43,8 @@ void inode_backpointer_t::dump(ceph::Formatter *f) const
 std::list<inode_backpointer_t> inode_backpointer_t::generate_test_instances()
 {
   std::list<inode_backpointer_t> ls;
-  ls.push_back(inode_backpointer_t{});
-  ls.push_back(inode_backpointer_t{});
+  ls.emplace_back();
+  ls.emplace_back();
   ls.back().dirino = 1;
   ls.back().dname = "foo";
   ls.back().version = 123;
@@ -110,8 +110,8 @@ void inode_backtrace_t::dump(ceph::Formatter *f) const
 std::list<inode_backtrace_t> inode_backtrace_t::generate_test_instances()
 {
   std::list<inode_backtrace_t> ls;
-  ls.push_back(inode_backtrace_t{});
-  ls.push_back(inode_backtrace_t{});
+  ls.emplace_back();
+  ls.emplace_back();
   ls.back().ino = 1;
   ls.back().ancestors.push_back(inode_backpointer_t());
   ls.back().ancestors.back().dirino = 123;

@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=2 sw=2 expandtab ft=cpp
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=2 sw=2 sts=2 expandtab ft=cpp
 
 /*
  * Ceph - scalable distributed file system
@@ -311,7 +311,9 @@ class DaosBucket : public StoreBucket {
   virtual int sync_owner_stats(const DoutPrefixProvider* dpp,
                                optional_yield y) override;
   virtual int check_bucket_shards(const DoutPrefixProvider* dpp) override;
-  virtual int chown(const DoutPrefixProvider* dpp, const rgw_owner& new_user,
+  virtual int chown(const DoutPrefixProvider* dpp,
+                    const rgw_owner& new_user,
+                    const std::string& new_owner_name,
                     optional_yield y) override;
   virtual int put_info(const DoutPrefixProvider* dpp, bool exclusive,
                        ceph::real_time mtime) override;
@@ -659,6 +661,7 @@ class DaosObject : public StoreObject {
 			   uint64_t olh_epoch,
 			   std::optional<uint64_t> days,
 		           bool& in_progress,
+		           uint64_t& size,
 			   const DoutPrefixProvider* dpp,
 			   optional_yield y) override;
   virtual bool placement_rules_match(rgw_placement_rule& r1,

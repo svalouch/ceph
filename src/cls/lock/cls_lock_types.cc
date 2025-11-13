@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -36,7 +37,7 @@ std::list<locker_id_t> locker_id_t::generate_test_instances()
   locker_id_t i;
   generate_lock_id(i, 1, "cookie");
   o.push_back(std::move(i));
-  o.push_back(locker_id_t{});
+  o.emplace_back();
   return o;
 }
 
@@ -67,7 +68,7 @@ std::list<locker_info_t> locker_info_t::generate_test_instances()
   generate_test_addr(i.addr, 1, 2);
   i.description = "description";
   o.push_back(std::move(i));
-  o.push_back(locker_info_t{});
+  o.emplace_back();
   return o;
 }
 
@@ -99,6 +100,6 @@ std::list<lock_info_t> lock_info_t::generate_test_instances()
   i.lock_type = ClsLockType::EXCLUSIVE;
   i.tag = "tag";
   o.push_back(std::move(i));
-  o.push_back(lock_info_t{});
+  o.emplace_back();
   return o;
 }

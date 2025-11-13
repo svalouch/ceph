@@ -1,5 +1,5 @@
 // -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
-// vim: ts=8 sw=2 smarttab expandtab
+// vim: ts=8 sw=2 sts=2 expandtab expandtab
 
 #include "pg.h"
 
@@ -1064,12 +1064,12 @@ PG::interruptible_future<eversion_t> PG::submit_error_log(
   const std::error_code e,
   ceph_tid_t rep_tid)
 {
-  // as with submit_executer, need to ensure that log numbering and submission
-  // are atomic
-  co_await interruptor::make_interruptible(submit_lock.lock());
   auto unlocker = seastar::defer([this] {
     submit_lock.unlock();
   });
+  // as with submit_executer, need to ensure that log numbering and submission
+  // are atomic
+  co_await interruptor::make_interruptible(submit_lock.lock());
   LOG_PREFIX(PG::submit_error_log);
   DEBUGDPP("{} rep_tid: {} error: {}",
 	   *this, *m, rep_tid, e);
@@ -1155,8 +1155,19 @@ PG::run_executer_fut PG::run_executer(
 {
   LOG_PREFIX(PG::run_executer);
   auto rollbacker = ox.create_rollbacker(
-    [obc_data = duplicate_obc_data(obc)](auto &obc) mutable {
+    [FNAME, obc_data = duplicate_obc_data(obc), &ox, this](auto &obc) mutable {
+      // First, revert the OBC state
       obc->update_from(obc_data);
+      // Then clean up any prepared clone OBCs
+      if (ox.has_cloning_ctx()) {
+        const auto coid = ox.get_cloning_coid();
+        DEBUGDPP("cleaning up clone OBC for {} reqid={}",
+        FNAME, coid, ox.get_message().get_reqid());
+        // Use single-key clear by passing [coid, coid] to avoid impacting other clones
+        this->obc_registry.clear_range(coid, coid);
+        // Reset the cloning context directly
+        ox.reset_cloning_ctx();
+      }
     });
   auto rollback_on_error = seastar::defer([&rollbacker] {
     rollbacker.rollback_obc_if_modified();
@@ -1202,12 +1213,12 @@ PG::submit_executer_fut PG::submit_executer(
   LOG_PREFIX(PG::submit_executer);
   DEBUGDPP("", *this);
 
-  // we need to build the pg log entries and submit the transaction
-  // atomically to ensure log ordering
-  co_await interruptor::make_interruptible(submit_lock.lock());
   auto unlocker = seastar::defer([this] {
     submit_lock.unlock();
   });
+  // we need to build the pg log entries and submit the transaction
+  // atomically to ensure log ordering
+  co_await interruptor::make_interruptible(submit_lock.lock());
 
   auto [submitted, completed] = co_await std::move(
     ox
@@ -1744,9 +1755,10 @@ void PG::reset_pglog_based_recovery_op() {
 }
 
 void PG::cancel_pglog_based_recovery_op() {
-  ceph_assert(pglog_based_recovery_op);
-  pglog_based_recovery_op->cancel();
-  reset_pglog_based_recovery_op();
+  if (pglog_based_recovery_op) {
+    pglog_based_recovery_op->cancel();
+    reset_pglog_based_recovery_op();
+  }
 }
 
 void PG::C_PG_FinishRecovery::finish(int r) {

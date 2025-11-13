@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -426,11 +427,14 @@ std::set<std::pair<unsigned, unsigned>> ConnectionTracker::get_netsplit(
     }
     // For debugging purposes:
     if (cct->_conf->subsys.should_gather(ceph_subsys_mon, 30)) {
-      ldout(cct, 30) << "Netsplit pairs: " << dendl;
+      ldout(cct, 30) << "Netsplit pairs: {";
+      bool first = true;
       for (const auto& nsp_pair : nsp_pairs) {
-        ldout(cct, 30) << "(" << nsp_pair.first << ", "
-          << nsp_pair.second << ") " << dendl;
+        if (!first) *_dout << ", ";
+        first = false;
+        *_dout << "(" << nsp_pair.first << ", " << nsp_pair.second << ")";
       }
+      *_dout << "}" << dendl;
     }
     return nsp_pairs;
 }
@@ -504,8 +508,8 @@ void ConnectionReport::dump(ceph::Formatter *f) const
 std::list<ConnectionReport> ConnectionReport::generate_test_instances()
 {
   std::list<ConnectionReport> o;
-  o.push_back(ConnectionReport{});
-  o.push_back(ConnectionReport{});
+  o.emplace_back();
+  o.emplace_back();
   o.back().rank = 1;
   o.back().epoch = 2;
   o.back().epoch_version = 3;
@@ -533,8 +537,8 @@ void ConnectionTracker::dump(ceph::Formatter *f) const
 std::list<ConnectionTracker> ConnectionTracker::generate_test_instances()
 {
   std::list<ConnectionTracker> o;
-  o.push_back(ConnectionTracker{});
-  o.push_back(ConnectionTracker{});
+  o.emplace_back();
+  o.emplace_back();
   ConnectionTracker& e = o.back();
   e.rank = 2;
   e.epoch = 3;

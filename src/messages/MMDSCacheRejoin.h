@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -72,7 +73,7 @@ public:
     }
     static std::list<inode_strong> generate_test_instances() {
       std::list<inode_strong> ls;
-      ls.push_back(inode_strong{});
+      ls.emplace_back();
       ls.push_back(inode_strong(1, 2, 3, 4, 5));
       return ls;
     }
@@ -96,7 +97,7 @@ public:
     }
     static std::list<dirfrag_strong> generate_test_instances() {
       std::list<dirfrag_strong> ls;
-      ls.push_back(dirfrag_strong{});
+      ls.emplace_back();
       ls.push_back(dirfrag_strong(1, 2));
       return ls;
     }
@@ -143,7 +144,7 @@ public:
     }
     static std::list<dn_strong> generate_test_instances() {
       std::list<dn_strong> ls;
-      ls.push_back(dn_strong{});
+      ls.emplace_back();
       ls.push_back(dn_strong(1, "alternate_name", 2, 3, 4, 5, 6));
       return ls;
     }
@@ -201,7 +202,7 @@ public:
     }
     static std::list<dn_strong_new> generate_test_instances() {
       std::list<dn_strong_new> ls;
-      ls.push_back(dn_strong_new{});
+      ls.emplace_back();
       ls.push_back(dn_strong_new(1, "alternate_name", 2, 3, 4, 5, 6, 7));
       return ls;
     }

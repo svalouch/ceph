@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -17,8 +18,12 @@
 #define CEPH_CAPABILITY_H
 
 #include "include/buffer_fwd.h"
+#include "include/ceph_fs.h" // for CEPH_CAP_*
 #include "include/counter.h"
 #include "include/mempool.h"
+#include "include/object.h" // for snapid_t
+#include "include/types.h" // for version_t
+#include "include/utime.h"
 #include "include/xlist.h"
 #include "include/elist.h"
 

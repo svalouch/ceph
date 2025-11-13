@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -42,8 +43,8 @@ void pow2_hist_t::decode(ceph::buffer::list::const_iterator& p)
 std::list<pow2_hist_t> pow2_hist_t::generate_test_instances()
 {
   std::list<pow2_hist_t> ls;
-  ls.push_back(pow2_hist_t{});
-  ls.push_back(pow2_hist_t{});
+  ls.emplace_back();
+  ls.emplace_back();
   ls.back().h.push_back(1);
   ls.back().h.push_back(3);
   ls.back().h.push_back(0);

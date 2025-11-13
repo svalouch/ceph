@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #ifndef OSD_PERF_METRIC_H_
 #define OSD_PERF_METRIC_H_
@@ -11,7 +11,13 @@
 
 #include "mgr/Types.h"
 
+#include <iosfwd>
+#include <list>
+#include <map>
 #include <regex>
+#include <set>
+#include <string>
+#include <vector>
 
 typedef std::vector<std::string> OSDPerfMetricSubKey; // array of regex match
 typedef std::vector<OSDPerfMetricSubKey> OSDPerfMetricKey;
@@ -426,8 +432,8 @@ struct OSDPerfMetricReport {
 
   static std::list<OSDPerfMetricReport> generate_test_instances() {
     std::list<OSDPerfMetricReport> o;
-    o.push_back(OSDPerfMetricReport{});
-    o.push_back(OSDPerfMetricReport{});
+    o.emplace_back();
+    o.emplace_back();
     o.back().performance_counter_descriptors.push_back(
         PerformanceCounterDescriptor(PerformanceCounterType::OPS));
     o.back().performance_counter_descriptors.push_back(

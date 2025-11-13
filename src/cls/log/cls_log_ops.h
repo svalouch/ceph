@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #ifndef CEPH_CLS_LOG_OPS_H
 #define CEPH_CLS_LOG_OPS_H
@@ -45,8 +45,8 @@ struct add_op {
     std::list<add_op> l;
     l.emplace_back();
     l.emplace_back();
-    l.back().entries.push_back(entry{});
-    l.back().entries.push_back(entry{});
+    l.back().entries.emplace_back();
+    l.back().entries.emplace_back();
     l.back().entries.back().section = "section";
     l.back().entries.back().name = "name";
     l.back().entries.back().timestamp = ceph::real_time{1s + 2ns};
@@ -137,8 +137,8 @@ struct list_ret {
     std::list<list_ret> ls;
     ls.emplace_back();
     ls.emplace_back();
-    ls.back().entries.push_back(entry{});
-    ls.back().entries.push_back(entry{});
+    ls.back().entries.emplace_back();
+    ls.back().entries.emplace_back();
     ls.back().entries.back().section = "section";
     ls.back().entries.back().name = "name";
     ls.back().entries.back().timestamp = ceph::real_time{1s + 2ns};

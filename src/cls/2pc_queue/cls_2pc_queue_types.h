@@ -1,7 +1,11 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 #pragma once
 
+#include "common/ceph_time.h" // for ceph::coarse_real_time
+#include "common/Formatter.h"
+#include "include/encoding.h"
 #include "include/types.h"
 
 #include <unordered_map>
@@ -44,9 +48,9 @@ struct cls_2pc_reservation
 
   static std::list<cls_2pc_reservation> generate_test_instances() {
     std::list<cls_2pc_reservation> ls;
-    ls.push_back(cls_2pc_reservation{});
+    ls.emplace_back();
     ls.back().size = 0;
-    ls.push_back(cls_2pc_reservation{});
+    ls.emplace_back();
     ls.back().size = 123;
     ls.back().timestamp = ceph::coarse_real_clock::zero();
     return ls;
@@ -102,8 +106,8 @@ struct cls_2pc_urgent_data
 
   static std::list<cls_2pc_urgent_data> generate_test_instances() {
     std::list<cls_2pc_urgent_data> ls;
-    ls.push_back(cls_2pc_urgent_data{});
-    ls.push_back(cls_2pc_urgent_data{});
+    ls.emplace_back();
+    ls.emplace_back();
     ls.back().reserved_size = 123;
     ls.back().last_id = 456;
     ls.back().reservations.emplace(789, cls_2pc_reservation(1, ceph::coarse_real_clock::zero(), 2));

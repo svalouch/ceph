@@ -353,12 +353,12 @@ if(WITH_QATDRV)
   find_package(QatDrv REQUIRED COMPONENTS qat_s usdm_drv_s)
   set(HAVE_QAT TRUE)
 elseif(WITH_QATLIB)
-  if(NOT WITH_SYSTEM_QAT)
+  if(NOT WITH_SYSTEM_QATLIB)
     include(BuildQAT)
     build_qat()
   endif()
   find_package(QAT REQUIRED)
-  if(NOT WITH_SYSTEM_QAT)
+  if(NOT WITH_SYSTEM_QATLIB)
     add_dependencies(QAT::qat qatlib_ext)
     add_dependencies(QAT::usdm qatlib_ext)
   endif()
@@ -430,6 +430,8 @@ endif(WITH_LZ4)
 
 CMAKE_DEPENDENT_OPTION(WITH_CEPH_DEBUG_MUTEX "Use debug ceph::mutex with lockdep" ON
   "CMAKE_BUILD_TYPE STREQUAL Debug" OFF)
+
+option(WITH_CPUTRACE "Enable Cputrace support via the admin socket" OFF)
 
 #if allocator is set on command line make sure it matches below strings
 set(ALLOCATOR "" CACHE STRING
@@ -558,7 +560,7 @@ option(WITH_RADOSGW_DBSTORE "DBStore backend for RADOS Gateway" ON)
 option(WITH_RADOSGW_MOTR "CORTX-Motr backend for RADOS Gateway" OFF)
 option(WITH_RADOSGW_DAOS "DAOS backend for RADOS Gateway" OFF)
 option(WITH_RADOSGW_D4N "D4N wrapper for RADOS Gateway" ON)
-option(WITH_RADOSGW_POSIX "POSIX backend for RADOS Gateway" ON)
+cmake_dependent_option(WITH_RADOSGW_POSIX "POSIX backend for RADOS Gateway" ON WITH_RADOSGW_DBSTORE OFF) # posix depends on dbstore
 option(WITH_RADOSGW_RADOS "RADOS backend for Rados Gateway" ON)
 option(WITH_RADOSGW_SELECT_PARQUET "Support for s3 select on parquet objects" ON)
 option(WITH_RADOSGW_ARROW_FLIGHT "Build arrow flight when not using system-provided arrow" OFF)

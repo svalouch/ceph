@@ -24,11 +24,12 @@ import { DashboardV3Component } from './dashboard-v3.component';
 import { OrchestratorService } from '~/app/shared/api/orchestrator.service';
 import { AlertClass } from '~/app/shared/enum/health-icon.enum';
 import { HealthSnapshotMap } from '~/app/shared/models/health.interface';
+import { VERSION_PREFIX } from '~/app/shared/constants/app.constants';
 
 export class SummaryServiceMock {
   summaryDataSource = new BehaviorSubject({
     version:
-      'ceph version 17.0.0-12222-gcd0cd7cb ' +
+      `${VERSION_PREFIX} 17.0.0-12222-gcd0cd7cb ` +
       '(b8193bb4cda16ccc5b028c3e1df62bc72350a15d) quincy (dev)'
   });
   summaryData$ = this.summaryDataSource.asObservable();
@@ -119,7 +120,8 @@ describe('Dashbord Component', () => {
         inhibitedBy: null
       },
       receivers: ['ceph2'],
-      fingerprint: 'fingerprint'
+      fingerprint: 'fingerprint',
+      alert_count: 1
     },
     {
       labels: {
@@ -141,7 +143,8 @@ describe('Dashbord Component', () => {
         inhibitedBy: null
       },
       receivers: ['default'],
-      fingerprint: 'fingerprint'
+      fingerprint: 'fingerprint',
+      alert_count: 1
     },
     {
       labels: {
@@ -163,7 +166,8 @@ describe('Dashbord Component', () => {
         inhibitedBy: null
       },
       receivers: ['ceph'],
-      fingerprint: 'fingerprint'
+      fingerprint: 'fingerprint',
+      alert_count: 1
     }
   ];
 
@@ -201,7 +205,7 @@ describe('Dashbord Component', () => {
     component.prometheusAlertService.alerts = alertsPayload;
     component.isAlertmanagerConfigured = true;
     let prometheusAlertService = TestBed.inject(PrometheusAlertService);
-    spyOn(prometheusAlertService, 'getAlerts').and.callFake(() => of([]));
+    spyOn(prometheusAlertService, 'getGroupedAlerts').and.callFake(() => of([]));
     prometheusAlertService.activeCriticalAlerts = 2;
     prometheusAlertService.activeWarningAlerts = 1;
   });

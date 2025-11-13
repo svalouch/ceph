@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab ft=cpp
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab ft=cpp
 
 /*
  * Ceph - scalable distributed file system
@@ -166,7 +166,7 @@ void resource_metadata::dump(ceph::Formatter* f) const
 std::list<resource_metadata> resource_metadata::generate_test_instances()
 {
   std::list<resource_metadata> o;
-  o.push_back(resource_metadata{});
+  o.emplace_back();
   resource_metadata m;;
   m.user_id = "uid";
   o.push_back(std::move(m));

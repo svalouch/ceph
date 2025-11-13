@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #ifndef CEPH_CLS_VERSION_TYPES_H
 #define CEPH_CLS_VERSION_TYPES_H
@@ -9,6 +9,7 @@
 #include <list>
 #include <string>
 
+#include "common/Formatter.h"
 #include "include/encoding.h"
 #include "include/types.h"
 
@@ -114,8 +115,8 @@ struct obj_version_cond {
 
   static std::list<obj_version_cond> generate_test_instances() {
     std::list<obj_version_cond> o;
-    o.push_back(obj_version_cond{});
-    o.push_back(obj_version_cond{});
+    o.emplace_back();
+    o.emplace_back();
     o.back().ver.ver = 1;
     o.back().ver.tag = "foo";
     o.back().cond = VER_COND_EQ;

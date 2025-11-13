@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #include "common/SloppyCRCMap.h"
 #include "common/Formatter.h"
@@ -174,7 +174,7 @@ void SloppyCRCMap::dump(ceph::Formatter *f) const
 list<SloppyCRCMap> SloppyCRCMap::generate_test_instances()
 {
   list<SloppyCRCMap> ls;
-  ls.push_back(SloppyCRCMap{});
+  ls.emplace_back();
   ls.push_back(SloppyCRCMap(2));
   bufferlist bl;
   bl.append("some data");

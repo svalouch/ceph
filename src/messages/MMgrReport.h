@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -87,8 +88,8 @@ public:
   static std::list<PerfCounterType> generate_test_instances()
   {
     std::list<PerfCounterType> ls;
-    ls.push_back(PerfCounterType{});
-    ls.push_back(PerfCounterType{});
+    ls.emplace_back();
+    ls.emplace_back();
     ls.back().path = "mycounter";
     ls.back().description = "mycounter description";
     ls.back().nick = "mycounter nick";

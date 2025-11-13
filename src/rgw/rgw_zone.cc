@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab ft=cpp
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab ft=cpp
 
 #include <optional>
 
@@ -71,8 +71,8 @@ static void decode_placement_targets(map<string, RGWZoneGroupPlacementTarget>& t
 list<RGWZone> RGWZone::generate_test_instances()
 {
   list<RGWZone> o;
-  o.push_back(RGWZone{});
-  o.push_back(RGWZone{});
+  o.emplace_back();
+  o.emplace_back();
   return o;
 }
 
@@ -511,8 +511,8 @@ void RGWZonePlacementInfo::dump(Formatter *f) const
 list<RGWZonePlacementInfo> RGWZonePlacementInfo::generate_test_instances()
 {
   list<RGWZonePlacementInfo> o;
-  o.push_back(RGWZonePlacementInfo{});
-  o.push_back(RGWZonePlacementInfo{});
+  o.emplace_back();
+  o.emplace_back();
   o.back().index_pool = rgw_pool("rgw.buckets.index");
   
   o.back().data_extra_pool = rgw_pool("rgw.buckets.non-ec");
@@ -585,7 +585,7 @@ void RGWZoneStorageClasses::dump(Formatter *f) const
 list<RGWZoneStorageClasses> RGWZoneStorageClasses::generate_test_instances()
 {
   list<RGWZoneStorageClasses> o;
-  o.push_back(RGWZoneStorageClasses{});
+  o.emplace_back();
   return o;
 }
 
@@ -606,7 +606,14 @@ void RGWZoneStorageClasses::decode_json(JSONObj *obj)
 void RGWZoneGroupTierS3Glacier::dump(Formatter *f) const
 {
   encode_json("glacier_restore_days", glacier_restore_days, f);
-  string s = (glacier_restore_tier_type == Standard ? "Standard" : "Expedited");
+  string s;
+  if (glacier_restore_tier_type == Expedited) {
+    s = "Expedited";
+  } else if (glacier_restore_tier_type == NoTier) {
+    s = "NoTier";
+  } else {
+    s = "Standard";
+  }
   encode_json("glacier_restore_tier_type", s, f);
 }
 
@@ -615,10 +622,12 @@ void RGWZoneGroupTierS3Glacier::decode_json(JSONObj *obj)
   JSONDecoder::decode_json("glacier_restore_days", glacier_restore_days, obj);
   string s;
   JSONDecoder::decode_json("glacier_restore_tier_type", s, obj);
-  if (s != "Expedited") {
-    glacier_restore_tier_type = Standard;
-  } else {
+  if (s == "Expedited") {
     glacier_restore_tier_type = Expedited;
+  } else if (s == "NoTier") {
+    glacier_restore_tier_type = NoTier;
+  } else {
+    glacier_restore_tier_type = Standard;
   }
 }
 
@@ -652,6 +661,7 @@ void RGWZoneGroupPlacementTierS3::decode_json(JSONObj *obj)
   } else {
     host_style = VirtualStyle;
   }
+  JSONDecoder::decode_json("location_constraint", location_constraint, obj);
   JSONDecoder::decode_json("target_storage_class", target_storage_class, obj);
   JSONDecoder::decode_json("target_path", target_path, obj);
   JSONDecoder::decode_json("acl_mappings", acl_mappings, obj);
@@ -672,8 +682,8 @@ void RGWZoneStorageClass::dump(Formatter *f) const
 list<RGWZoneStorageClass> RGWZoneStorageClass::generate_test_instances()
 {
   list<RGWZoneStorageClass> o;
-  o.push_back(RGWZoneStorageClass{});
-  o.push_back(RGWZoneStorageClass{});
+  o.emplace_back();
+  o.emplace_back();
   o.back().data_pool = rgw_pool("pool1");
   o.back().compression_type = "zlib";
   return o;
@@ -709,6 +719,7 @@ void RGWZoneGroupPlacementTierS3::dump(Formatter *f) const
   encode_json("region", region, f);
   string s = (host_style == PathStyle ? "path" : "virtual");
   encode_json("host_style", s, f);
+  encode_json("location_constraint", location_constraint, f);
   encode_json("target_storage_class", target_storage_class, f);
   encode_json("target_path", target_path, f);
   encode_json("acl_mappings", acl_mappings, f);
@@ -1962,6 +1973,9 @@ int RGWZoneGroupPlacementTierS3::update_params(const JSONFormattable& config)
       host_style = VirtualStyle;
     }
   }
+  if (config.exists("location_constraint")) {
+    location_constraint = config["location_constraint"];
+  }
   if (config.exists("target_storage_class")) {
     target_storage_class = config["target_storage_class"];
   }
@@ -2024,6 +2038,9 @@ int RGWZoneGroupPlacementTierS3::clear_params(const JSONFormattable& config)
   if (config.exists("target_storage_class")) {
     target_storage_class.clear();
   }
+  if (config.exists("location_constraint")) {
+    location_constraint.clear();
+  }
   if (config.exists("access_key")) {
     key.id.clear();
   }
@@ -2066,10 +2083,12 @@ int RGWZoneGroupTierS3Glacier::update_params(const JSONFormattable& config)
   if (config.exists("glacier_restore_tier_type")) {
     string s;
     s = config["glacier_restore_tier_type"];
-    if (s != "Expedited") {
-      glacier_restore_tier_type = Standard;
-    } else {
+    if (s == "Expedited") {
       glacier_restore_tier_type = Expedited;
+    } else if (s == "NoTier") {
+      glacier_restore_tier_type = NoTier;
+    } else {
+      glacier_restore_tier_type = Standard;
     }
   }
   return 0;

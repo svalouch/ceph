@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -15,11 +16,17 @@
 #ifndef CEPH_ANCHOR_H
 #define CEPH_ANCHOR_H
 
+#include <iosfwd>
+#include <set>
 #include <string>
 
 #include "include/types.h"
 #include "mdstypes.h"
 #include "include/buffer.h"
+#include "include/cephfs/types.h" // for mds_rank_t
+#include "include/frag.h"
+#include "include/fs_types.h" // for inodeno_t
+#include "include/int_types.h" // for __u8
 
 /*
  * Anchor represents primary linkage of an inode. When adding inode to an

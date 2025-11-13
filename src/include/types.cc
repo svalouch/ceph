@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -54,7 +55,7 @@ void client_t::dump(ceph::Formatter *f) const {
 
 std::list<client_t> client_t::generate_test_instances() {
   std::list<client_t> ls;
-  ls.push_back(client_t{});
+  ls.emplace_back();
   ls.push_back(client_t(1));
   ls.push_back(client_t(123));
   return ls;

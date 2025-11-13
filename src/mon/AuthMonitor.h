@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -18,6 +19,7 @@
 #include <map>
 #include <set>
 
+#include "auth/cephx/CephxKeyServer.h"
 #include "global/global_init.h"
 #include "include/ceph_features.h"
 #include "include/types.h"
@@ -84,11 +86,11 @@ public:
     }
     static std::list<Incremental> generate_test_instances() {
       std::list<Incremental> ls;
-      ls.push_back(Incremental{});
-      ls.push_back(Incremental{});
+      ls.emplace_back();
+      ls.emplace_back();
       ls.back().inc_type = GLOBAL_ID;
       ls.back().max_global_id = 1234;
-      ls.push_back(Incremental{});
+      ls.emplace_back();
       ls.back().inc_type = AUTH_DATA;
       ls.back().auth_type = 12;
       ls.back().auth_data.append("foo");

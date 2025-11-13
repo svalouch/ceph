@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -22,6 +23,7 @@
 #define CEPH_PGMAP_H
 
 #include "include/buffer.h"
+#include "include/ceph_fs.h" // for ceph_statfs
 #include "common/debug.h" // for cmdmap_t
 #include "common/cmdparse.h"
 #include "common/Formatter.h"
@@ -84,8 +86,8 @@ public:
     }
     static std::list<pg_count> generate_test_instances() {
       std::list<pg_count> o;
-      o.push_back(pg_count{});
-      o.push_back(pg_count{});
+      o.emplace_back();
+      o.emplace_back();
       o.back().acting = 1;
       o.back().up_not_acting = 2;
       o.back().primary = 3;

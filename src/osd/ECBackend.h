@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -373,8 +374,12 @@ public:
       ScrubMap::object &o
     );
 
-  uint64_t be_get_ondisk_size(uint64_t logical_size, shard_id_t shard_id
-    ) const {
+  uint64_t be_get_ondisk_size(uint64_t logical_size, shard_id_t shard_id,
+      bool object_is_legacy_ec) const {
+    if (object_is_legacy_ec) {
+      // In legacy EC, all shards were padded to the next chunk boundry.
+      return sinfo.ro_offset_to_next_chunk_offset(logical_size);
+    }
     return object_size_to_shard_size(logical_size, shard_id);
   }
 };

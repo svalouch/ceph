@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
 
 #include <boost/variant.hpp>
 #include "cls/rbd/cls_rbd_types.h"
@@ -539,7 +539,7 @@ void ParentImageSpec::dump(Formatter *f) const {
 
 std::list<ParentImageSpec> ParentImageSpec::generate_test_instances() {
   std::list<ParentImageSpec> o;
-  o.push_back(ParentImageSpec{});
+  o.emplace_back();
   o.push_back(ParentImageSpec{1, "", "foo", 3});
   o.push_back(ParentImageSpec{1, "ns", "foo", 3});
   return o;

@@ -1,5 +1,5 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab ft=cpp
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab ft=cpp
 
 /*
  * Ceph - scalable distributed file system
@@ -90,8 +90,8 @@ struct rgw_obj_index_key { // cls_rgw_obj_key now aliases this type
   void decode_json(JSONObj *obj);
   static std::list<rgw_obj_index_key> generate_test_instances() {
     std::list<rgw_obj_index_key> ls;
-    ls.push_back(rgw_obj_index_key{});
-    ls.push_back(rgw_obj_index_key{});
+    ls.emplace_back();
+    ls.emplace_back();
     ls.back().name = "name";
     ls.back().instance = "instance";
     return ls;

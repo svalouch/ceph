@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*- 
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*- 
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -76,7 +77,7 @@ struct EntityAuth {
   }
   static std::list<EntityAuth> generate_test_instances() {
     std::list<EntityAuth> ls;
-    ls.push_back(EntityAuth{});
+    ls.emplace_back();
     return ls;
   }
 };
@@ -122,10 +123,10 @@ struct AuthCapsInfo {
   }
   static std::list<AuthCapsInfo> generate_test_instances() {
     std::list<AuthCapsInfo> ls;
-    ls.push_back(AuthCapsInfo{});
-    ls.push_back(AuthCapsInfo{});
+    ls.emplace_back();
+    ls.emplace_back();
     ls.back().allow_all = true;
-    ls.push_back(AuthCapsInfo{});
+    ls.emplace_back();
     ls.back().caps.append("foo");
     ls.back().caps.append("bar");
     return ls;
@@ -190,8 +191,8 @@ struct AuthTicket {
   }
   static std::list<AuthTicket> generate_test_instances() {
     std::list<AuthTicket> ls;
-    ls.push_back(AuthTicket{});
-    ls.push_back(AuthTicket{});
+    ls.emplace_back();
+    ls.emplace_back();
     ls.back().name.set_id("client.123");
     ls.back().global_id = 123;
     ls.back().init_timestamps(utime_t(123, 456), 7);
@@ -290,8 +291,8 @@ struct ExpiringCryptoKey {
   }
   static std::list<ExpiringCryptoKey> generate_test_instances() {
     std::list<ExpiringCryptoKey> ls;
-    ls.push_back(ExpiringCryptoKey{});
-    ls.push_back(ExpiringCryptoKey{});
+    ls.emplace_back();
+    ls.emplace_back();
     ls.back().key.set_secret(
       CEPH_CRYPTO_AES, bufferptr("1234567890123456", 16), utime_t(123, 456));
     return ls;
@@ -365,8 +366,8 @@ struct RotatingSecrets {
   }
   static std::list<RotatingSecrets> generate_test_instances() {
     std::list<RotatingSecrets> ls;
-    ls.push_back(RotatingSecrets{});
-    ls.push_back(RotatingSecrets{});
+    ls.emplace_back();
+    ls.emplace_back();
     ExpiringCryptoKey eck{};
     ls.back().add(eck);
     return ls;

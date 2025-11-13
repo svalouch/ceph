@@ -1,5 +1,6 @@
-// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:t -*-
-// vim: ts=8 sw=2 smarttab
+// -*- mode:C++; tab-width:8; c-basic-offset:2; indent-tabs-mode:nil -*-
+// vim: ts=8 sw=2 sts=2 expandtab
+
 /*
  * Ceph - scalable distributed file system
  *
@@ -20,12 +21,14 @@
 #include <ostream>
 #include <string>
 #include <string_view>
+#include <variant>
 #include <vector>
 
 #include "include/compact_set.h"
 #include "include/encoding.h"
 #include "include/fs_types.h"
 #include "include/ceph_fs.h"
+#include "include/object.h" // for snapid_t
 #include "include/types.h" // for version_t
 #include "include/utime.h"
 
@@ -214,7 +217,7 @@ struct vinodeno_t {
   void dump(ceph::Formatter *f) const;
   static std::list<vinodeno_t> generate_test_instances() {
     std::list<vinodeno_t> ls;
-    ls.push_back(vinodeno_t{});
+    ls.emplace_back();
     ls.push_back(vinodeno_t(1, 2));
     return ls;
   }
@@ -1134,8 +1137,8 @@ template<template<typename> class Allocator>
 auto inode_t<Allocator>::generate_test_instances() -> std::list<inode_t>
 {
   std::list<inode_t> ls;
-  ls.push_back(inode_t<Allocator>{});
-  ls.push_back(inode_t<Allocator>{});
+  ls.emplace_back();
+  ls.emplace_back();
   ls.back().ino = 1;
   // i am lazy.
   return ls;
